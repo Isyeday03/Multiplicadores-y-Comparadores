@@ -1,228 +1,520 @@
-import React, { useState } from 'react';
-import { Calculator, Zap } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplicador Binario 2×2 bits</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const BinaryMultiplier = () => {
-  const [a1, setA1] = useState(0);
-  const [a0, setA0] = useState(0);
-  const [b1, setB1] = useState(0);
-  const [b0, setB0] = useState(0);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-  // Compuertas AND para productos parciales
-  const andGate = (x, y) => x && y ? 1 : 0;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-  // Half Adder
-  const halfAdder = (x, y) => {
-    const sum = x ^ y; // XOR para suma
-    const carry = x && y ? 1 : 0; // AND para acarreo
-    return { sum, carry };
-  };
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
 
-  // Cálculo de productos parciales
-  const P00 = andGate(a0, b0);
-  const P01 = andGate(a1, b0);
-  const P10 = andGate(a0, b1);
-  const P11 = andGate(a1, b1);
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
 
-  // Suma de productos parciales
-  const P0 = P00;
-  
-  // Bit P1: suma P01 + P10
-  const ha1 = halfAdder(P01, P10);
-  const P1 = ha1.sum;
-  const C1 = ha1.carry;
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
 
-  // Bit P2: suma P11 + C1
-  const ha2 = halfAdder(P11, C1);
-  const P2 = ha2.sum;
-  const P3 = ha2.carry;
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
 
-  const resultado = P3 * 8 + P2 * 4 + P1 * 2 + P0;
-  const valorA = a1 * 2 + a0;
-  const valorB = b1 * 2 + b0;
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
 
-  const BitButton = ({ value, onChange, label }) => (
-    <button
-      onClick={() => onChange(value === 0 ? 1 : 0)}
-      className={`w-16 h-16 text-2xl font-bold rounded-lg transition-all ${
-        value === 1
-          ? 'bg-blue-500 text-white shadow-lg scale-105'
-          : 'bg-gray-200 text-gray-600'
-      }`}
-    >
-      {value}
-    </button>
-  );
+        .inputs-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
 
-  const AndGate = ({ input1, input2, output, label }) => (
-    <div className="flex flex-col items-center p-3 bg-white rounded-lg shadow-md">
-      <div className="text-xs text-gray-600 mb-1">{label}</div>
-      <div className="flex gap-2 mb-2">
-        <span className={`w-6 h-6 rounded flex items-center justify-center text-xs ${
-          input1 ? 'bg-blue-500 text-white' : 'bg-gray-300'
-        }`}>{input1}</span>
-        <span className="text-xs">AND</span>
-        <span className={`w-6 h-6 rounded flex items-center justify-center text-xs ${
-          input2 ? 'bg-blue-500 text-white' : 'bg-gray-300'
-        }`}>{input2}</span>
-      </div>
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-        output ? 'bg-green-500 text-white' : 'bg-gray-300'
-      }`}>{output}</div>
+        .input-group {
+            text-align: center;
+        }
+
+        .input-group h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .bit-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .bit-button {
+            width: 80px;
+            height: 80px;
+            font-size: 2em;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .bit-button.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .bit-button.inactive {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .bit-button:hover {
+            transform: scale(1.15);
+        }
+
+        .bit-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .decimal-value {
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .product-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .product-box h4 {
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .product-box .formula {
+            font-size: 0.85em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .product-box .result {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .multiplication-diagram {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.3em;
+            line-height: 1.8;
+            margin: 20px 0;
+            border: 2px solid #667eea;
+        }
+
+        .multiplication-diagram .highlight {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .multiplication-diagram .result-line {
+            color: #f5576c;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .adder-section {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+
+        .adder-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .adder-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .adder-operation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+
+        .result-final {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-final h2 {
+            color: white;
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        .result-bits {
+            font-size: 4em;
+            font-weight: bold;
+            letter-spacing: 15px;
+            margin: 20px 0;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-decimal {
+            font-size: 2em;
+            margin-top: 15px;
+        }
+
+        .components-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .components-list ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .components-list li {
+            padding: 10px 0;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .components-list li:before {
+            content: "✓ ";
+            color: #38ef7d;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .inputs-section {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .bit-button {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5em;
+            }
+
+            .result-bits {
+                font-size: 2.5em;
+                letter-spacing: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔢 Multiplicador Binario 2×2 bits</h1>
+            <p>Simulación de circuito digital con compuertas AND y Half Adders</p>
+        </div>
+
+        <!-- SECCIÓN DE ENTRADAS -->
+        <div class="card">
+            <h2>⚡ Entradas (Click para cambiar)</h2>
+            <div class="inputs-section">
+                <div class="input-group">
+                    <h3>Multiplicando A</h3>
+                    <div class="bit-display">
+                        <div>
+                            <button class="bit-button" id="a1" onclick="toggleBit('a1')">0</button>
+                            <div class="bit-label">A₁</div>
+                        </div>
+                        <div>
+                            <button class="bit-button" id="a0" onclick="toggleBit('a0')">0</button>
+                            <div class="bit-label">A₀</div>
+                        </div>
+                    </div>
+                    <div class="decimal-value">Decimal: <span id="valueA">0</span></div>
+                </div>
+
+                <div class="input-group">
+                    <h3>Multiplicador B</h3>
+                    <div class="bit-display">
+                        <div>
+                            <button class="bit-button" id="b1" onclick="toggleBit('b1')">0</button>
+                            <div class="bit-label">B₁</div>
+                        </div>
+                        <div>
+                            <button class="bit-button" id="b0" onclick="toggleBit('b0')">0</button>
+                            <div class="bit-label">B₀</div>
+                        </div>
+                    </div>
+                    <div class="decimal-value">Decimal: <span id="valueB">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRODUCTOS PARCIALES -->
+        <div class="card">
+            <h2>🔧 Paso 1: Productos Parciales (Compuertas AND)</h2>
+            <div class="products-grid">
+                <div class="product-box">
+                    <h4>P₀₀</h4>
+                    <div class="formula">A₀ AND B₀</div>
+                    <div class="result" id="p00">0</div>
+                </div>
+                <div class="product-box">
+                    <h4>P₀₁</h4>
+                    <div class="formula">A₁ AND B₀</div>
+                    <div class="result" id="p01">0</div>
+                </div>
+                <div class="product-box">
+                    <h4>P₁₀</h4>
+                    <div class="formula">A₀ AND B₁</div>
+                    <div class="result" id="p10">0</div>
+                </div>
+                <div class="product-box">
+                    <h4>P₁₁</h4>
+                    <div class="formula">A₁ AND B₁</div>
+                    <div class="result" id="p11">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIAGRAMA DE MULTIPLICACIÓN -->
+        <div class="card">
+            <h2>📊 Paso 2: Alineación de Productos Parciales</h2>
+            <div class="multiplication-diagram" id="diagram">
+                <div>Multiplicación binaria:</div>
+                <div class="highlight" id="lineA">      0 0</div>
+                <div class="highlight" id="lineB">    × 0 0</div>
+                <div>    ────</div>
+                <div id="line1">     0 0  ← A × B₀</div>
+                <div id="line2">   0 0    ← A × B₁ (shift)</div>
+                <div>    ────</div>
+                <div class="result-line" id="lineResult">   0 0 0 0</div>
+            </div>
+        </div>
+
+        <!-- SUMADORES -->
+        <div class="card">
+            <h2>➕ Paso 3: Suma con Half Adders</h2>
+            
+            <div class="adder-section">
+                <h4>Half Adder 1 (Bit P₁)</h4>
+                <div class="adder-box">
+                    <div class="adder-operation">
+                        <span>P₀₁ (<span id="ha1-input1">0</span>) + P₁₀ (<span id="ha1-input2">0</span>)</span>
+                        <span>→</span>
+                        <span>Suma: <strong id="p1-result">0</strong></span>
+                        <span>Acarreo C₁: <strong id="c1-result">0</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="adder-section">
+                <h4>Half Adder 2 (Bit P₂)</h4>
+                <div class="adder-box">
+                    <div class="adder-operation">
+                        <span>P₁₁ (<span id="ha2-input1">0</span>) + C₁ (<span id="ha2-input2">0</span>)</span>
+                        <span>→</span>
+                        <span>Suma: <strong id="p2-result">0</strong></span>
+                        <span>Acarreo P₃: <strong id="p3-result">0</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTADO FINAL -->
+        <div class="card result-final">
+            <h2>🎯 Resultado Final</h2>
+            <div class="result-bits" id="finalResult">0 0 0 0</div>
+            <div class="result-decimal">
+                <span id="valueA2">0</span> × <span id="valueB2">0</span> = <span id="finalDecimal">0</span>
+            </div>
+            <div style="margin-top: 15px; font-size: 1.2em;">
+                Binario: <span id="finalBinary">0000</span>₂ = Decimal: <span id="finalDecimal2">0</span>₁₀
+            </div>
+        </div>
+
+        <!-- COMPONENTES -->
+        <div class="card">
+            <h2>🔩 Componentes del Circuito</h2>
+            <div class="components-list">
+                <ul>
+                    <li>4 Compuertas AND (productos parciales)</li>
+                    <li>2 Half Adders (HA) para las sumas</li>
+                    <li>Entradas: 4 bits (A₁A₀, B₁B₀)</li>
+                    <li>Salidas: 4 bits (P₃P₂P₁P₀)</li>
+                </ul>
+            </div>
+        </div>
     </div>
-  );
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Calculator className="w-10 h-10 text-indigo-600" />
-            <h1 className="text-4xl font-bold text-gray-800">
-              Multiplicador Binario 2×2 bits
-            </h1>
-          </div>
-          <p className="text-gray-600">Simulación de circuito digital con compuertas AND y Half Adders</p>
-        </div>
+    <script>
+        // Estado de los bits
+        let bits = {
+            a1: 0, a0: 0,
+            b1: 0, b0: 0
+        };
 
-        {/* Entradas */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Zap className="w-6 h-6 text-yellow-500" />
-            Entradas (Click para cambiar)
-          </h2>
-          
-          <div className="grid grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                Multiplicando A = {a1}{a0} ({valorA})
-              </h3>
-              <div className="flex gap-3">
-                <div className="text-center">
-                  <div className="text-sm text-gray-500 mb-1">A₁</div>
-                  <BitButton value={a1} onChange={setA1} />
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-gray-500 mb-1">A₀</div>
-                  <BitButton value={a0} onChange={setA0} />
-                </div>
-              </div>
-            </div>
+        // Compuerta AND
+        function andGate(a, b) {
+            return a & b;
+        }
 
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                Multiplicador B = {b1}{b0} ({valorB})
-              </h3>
-              <div className="flex gap-3">
-                <div className="text-center">
-                  <div className="text-sm text-gray-500 mb-1">B₁</div>
-                  <BitButton value={b1} onChange={setB1} />
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-gray-500 mb-1">B₀</div>
-                  <BitButton value={b0} onChange={setB0} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        // Half Adder
+        function halfAdder(a, b) {
+            return {
+                sum: a ^ b,
+                carry: a & b
+            };
+        }
 
-        {/* Productos Parciales */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Paso 1: Productos Parciales (Compuertas AND)
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <AndGate input1={a0} input2={b0} output={P00} label="P₀₀ = A₀·B₀" />
-            <AndGate input1={a1} input2={b0} output={P01} label="P₀₁ = A₁·B₀" />
-            <AndGate input1={a0} input2={b1} output={P10} label="P₁₀ = A₀·B₁" />
-            <AndGate input1={a1} input2={b1} output={P11} label="P₁₁ = A₁·B₁" />
-          </div>
-        </div>
+        // Toggle bit
+        function toggleBit(bitId) {
+            bits[bitId] = bits[bitId] === 0 ? 1 : 0;
+            const btn = document.getElementById(bitId);
+            btn.textContent = bits[bitId];
+            btn.className = bits[bitId] === 1 ? 'bit-button active' : 'bit-button inactive';
+            calculate();
+        }
 
-        {/* Diagrama de Multiplicación */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Paso 2: Alineación de Productos Parciales
-          </h2>
-          <div className="font-mono text-center bg-gray-50 p-6 rounded-lg text-lg">
-            <div className="mb-2 text-gray-600">Multiplicación binaria:</div>
-            <div className="text-blue-600 font-bold">
-              {' '.repeat(12)}{a1} {a0}
-            </div>
-            <div className="text-blue-600 font-bold">
-              {' '.repeat(10)}× {b1} {b0}
-            </div>
-            <div className="border-t-2 border-gray-400 my-2"></div>
-            <div className="text-green-600">
-              {' '.repeat(10)}{P01} {P00}  ← A × B₀
-            </div>
-            <div className="text-green-600">
-              {' '.repeat(8)}{P11} {P10}    ← A × B₁ (shift)
-            </div>
-            <div className="border-t-2 border-gray-400 my-2"></div>
-            <div className="text-red-600 font-bold text-xl">
-              {' '.repeat(8)}{P3} {P2} {P1} {P0}
-            </div>
-          </div>
-        </div>
+        // Calcular multiplicación
+        function calculate() {
+            const { a1, a0, b1, b0 } = bits;
 
-        {/* Sumadores */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Paso 3: Suma con Half Adders
-          </h2>
-          <div className="space-y-4">
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-purple-800 mb-2">Half Adder 1 (Bit P₁)</h3>
-              <div className="flex items-center gap-4 flex-wrap">
-                <span>P₀₁ ({P01}) + P₁₀ ({P10})</span>
-                <span className="text-purple-600">→</span>
-                <span>Suma: {P1}</span>
-                <span>Acarreo C₁: {C1}</span>
-              </div>
-            </div>
+            // Valores decimales
+            const valueA = a1 * 2 + a0;
+            const valueB = b1 * 2 + b0;
+            document.getElementById('valueA').textContent = valueA;
+            document.getElementById('valueB').textContent = valueB;
+            document.getElementById('valueA2').textContent = valueA;
+            document.getElementById('valueB2').textContent = valueB;
 
-            <div className="bg-indigo-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-indigo-800 mb-2">Half Adder 2 (Bit P₂)</h3>
-              <div className="flex items-center gap-4 flex-wrap">
-                <span>P₁₁ ({P11}) + C₁ ({C1})</span>
-                <span className="text-indigo-600">→</span>
-                <span>Suma: {P2}</span>
-                <span>Acarreo P₃: {P3}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+            // Productos parciales
+            const p00 = andGate(a0, b0);
+            const p01 = andGate(a1, b0);
+            const p10 = andGate(a0, b1);
+            const p11 = andGate(a1, b1);
 
-        {/* Resultado */}
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg p-8 text-white">
-          <h2 className="text-3xl font-bold mb-4 text-center">Resultado Final</h2>
-          <div className="text-center">
-            <div className="text-6xl font-bold mb-4">
-              {P3}{P2}{P1}{P0}
-            </div>
-            <div className="text-2xl">
-              {valorA} × {valorB} = {resultado}
-            </div>
-            <div className="text-lg mt-2 opacity-90">
-              Binario: {P3}{P2}{P1}{P0}₂ = Decimal: {resultado}₁₀
-            </div>
-          </div>
-        </div>
+            document.getElementById('p00').textContent = p00;
+            document.getElementById('p01').textContent = p01;
+            document.getElementById('p10').textContent = p10;
+            document.getElementById('p11').textContent = p11;
 
-        {/* Componentes del Circuito */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-3">Componentes Utilizados</h2>
-          <ul className="space-y-2 text-gray-700">
-            <li>✓ 4 Compuertas AND (productos parciales)</li>
-            <li>✓ 2 Half Adders (HA) para las sumas</li>
-            <li>✓ Entradas: 4 bits (A₁A₀, B₁B₀)</li>
-            <li>✓ Salidas: 4 bits (P₃P₂P₁P₀)</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-};
+            // Bit P0
+            const p0 = p00;
 
-export default BinaryMultiplier;
+            // Half Adder 1
+            const ha1 = halfAdder(p01, p10);
+            const p1 = ha1.sum;
+            const c1 = ha1.carry;
+
+            document.getElementById('ha1-input1').textContent = p01;
+            document.getElementById('ha1-input2').textContent = p10;
+            document.getElementById('p1-result').textContent = p1;
+            document.getElementById('c1-result').textContent = c1;
+
+            // Half Adder 2
+            const ha2 = halfAdder(p11, c1);
+            const p2 = ha2.sum;
+            const p3 = ha2.carry;
+
+            document.getElementById('ha2-input1').textContent = p11;
+            document.getElementById('ha2-input2').textContent = c1;
+            document.getElementById('p2-result').textContent = p2;
+            document.getElementById('p3-result').textContent = p3;
+
+            // Resultado final
+            const resultado = p3 * 8 + p2 * 4 + p1 * 2 + p0;
+            document.getElementById('finalResult').textContent = `${p3} ${p2} ${p1} ${p0}`;
+            document.getElementById('finalDecimal').textContent = resultado;
+            document.getElementById('finalDecimal2').textContent = resultado;
+            document.getElementById('finalBinary').textContent = `${p3}${p2}${p1}${p0}`;
+
+            // Actualizar diagrama
+            document.getElementById('lineA').textContent = `      ${a1} ${a0}`;
+            document.getElementById('lineB').textContent = `    × ${b1} ${b0}`;
+            document.getElementById('line1').textContent = `     ${p01} ${p00}  ← A × B₀`;
+            document.getElementById('line2').textContent = `   ${p11} ${p10}    ← A × B₁ (shift)`;
+            document.getElementById('lineResult').textContent = `   ${p3} ${p2} ${p1} ${p0}`;
+        }
+
+        // Inicializar
+        calculate();
+    </script>
+</body>
+</html>
